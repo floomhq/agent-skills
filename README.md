@@ -1,14 +1,14 @@
 # agent-skills
 
-Nine Skills for coding agents, written by [Federico de Ponte](https://github.com/federicodeponte) and published here by Floom under Apache-2.0.
+Ten Skills for coding agents, published by Floom under Apache-2.0. Nine were written by [Federico de Ponte](https://github.com/federicodeponte) for his own work and are published here as edited copies. The tenth, `get-started-with-cyborg-mcp`, was written for this repository by Floom and is about Floom's own Skill catalog.
 
 A Skill is a folder with a `SKILL.md` at its root: a short front matter block naming the Skill and saying when to invoke it, then the instructions themselves. Agents that support Skills read the front matter to decide when a Skill applies, and the body once it does. Some of these carry scripts the instructions call.
 
-## These are derived copies, and each one says how it was derived
+## Nine of these are derived copies, and each one says how it was derived
 
-Every Skill here started as a private original in Federico's own working set. The original was read, never modified. What is published is a copy, edited so that it is useful to a stranger rather than only to the person who wrote it.
+Nine of the ten started as a private original in Federico's own working set. The original was read, never modified. What is published is a copy, edited so that it is useful to a stranger rather than only to the person who wrote it.
 
-Each folder carries a `DERIVATION.json` recording that edit in full: the path the original was read from, every file copied, every file left behind, the SHA-256 of each, and the licence that was added. A record cannot contain its own hash, so `DERIVATION.json` is excluded from the file list it describes.
+Each of those nine folders carries a `DERIVATION.json` recording that edit in full: the path the original was read from, every file copied, every file left behind, the SHA-256 of each, and the licence that was added. A record cannot contain its own hash, so `DERIVATION.json` is excluded from the file list it describes.
 
 The point of publishing the record alongside the copy is that you do not have to take the word "derived" on trust. You can read exactly what changed.
 
@@ -22,15 +22,16 @@ Before this date these copies carried no licence file at all, which under defaul
 
 ## What is not claimed
 
-No evaluation has been run against any of these, and no quality or safety state is asserted. They are one person's working instructions, published because they were useful to him, not because they passed a bar.
+No evaluation has been run against any of these, and no quality or safety state is asserted. Nine are one person's working instructions, published because they were useful to him, not because they passed a bar. The tenth is documentation of a product Floom builds, and it names, by version, which agents it was actually run against and which it was not.
 
 Several call out to tools that must already be on your machine: `generate-image` drives the Codex CLI, `linkedin-media-prep` and `strip-image-ai-metadata` use ffmpeg and Python imaging libraries, and `security-audit-checklist` bundles three Python scanners. Read a Skill's instructions and its scripts before you run it, the same as any other code you install.
 
-## The nine
+## The ten
 
 | Skill | What it does |
 | --- | --- |
 | `cli-ux-review` | Scores a command-line tool against a fixed rubric and writes the before/after fix for each failure. |
+| `get-started-with-cyborg-mcp` | Wires Floom's public Skill catalog into an agent through the `cyborg-mcp` MCP server, and installs a first Skill. Written here, not derived. |
 | `generate-image` | Generates images through the Codex CLI, billed to a ChatGPT subscription rather than a per-image API key. |
 | `http-error-triage` | Separates a real credential problem from a CDN block, a wrong endpoint or a signature ban, before anyone concludes "the key is dead". |
 | `linkedin-media-prep` | Converts, crops and compresses images and video to what LinkedIn actually accepts. |
