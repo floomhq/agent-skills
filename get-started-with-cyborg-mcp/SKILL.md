@@ -121,16 +121,18 @@ These read the same block:
 }
 ```
 
-**Nobody ran these three.** The block is the shape every client above accepted,
-which is a claim about the format and not a claim that anyone drove it. Their
-config file locations differ, and some manage MCP servers from a settings panel
-rather than a file, so take the location from the app's own documentation rather
-than a path guessed here. If the tools do not appear after saving, restart the
+**Nobody ran these three.** This is the block `gemini mcp add` wrote verbatim,
+and these three are documented as taking the same shape; that is a claim about
+the format, not a claim that anyone drove it here. This file gives no config path
+for them on purpose. Their locations differ, some manage MCP servers from a
+settings panel rather than a file, and nobody here verified one — a wrong path in
+a file that cannot be edited afterwards is worse than no path. Take it from the
+app's own MCP documentation. If the tools do not appear after saving, restart the
 app before debugging anything else.
 
-The command is deliberately unversioned. `cyborg-mcp` is the package name and a
-fixed identifier, so `npx -y cyborg-mcp` keeps resolving. What a new release can
-change is the tool names, which is the next section.
+The command is deliberately unversioned, so `npx` fetches whatever the current
+release is. One thing a new release can change under you is the tool names, which
+is the next section.
 
 ## Confirm it, and get the tool names from the server
 
@@ -152,7 +154,9 @@ Listed by `cyborg-mcp@0.1.3` on 2026-09-07:
 | `cyborg_get_stack` | One Stack: its curator, and the ordered Skills with the release each item pins. |
 | `cyborg_install_skill` | Writes one Skill into an agent's skills directory on this machine. |
 
-Substitute whatever the live listing gave you into everything below.
+Those descriptions are the tools' own. Three of the four were called; the Stack
+tool was not, because the catalog published no Stack that day. Substitute
+whatever the live listing gave you into everything below.
 
 ## Install the first Skill
 
@@ -205,10 +209,10 @@ anyone whose agent cannot start a local server, and for anyone who would rather
 not add one.
 
 **`cyborg mcp` is a different server.** The `cyborg-skills` CLI has an `mcp`
-subcommand of its own, and it serves a signed-in workspace library rather than
-this catalog. Run it in a terminal and it prints that distinction itself,
-including which package to use for the public catalog. Two doors to two
-different things, one character apart in the name.
+subcommand of its own, and it does not serve this catalog. Run it in a terminal
+and it prints the distinction itself, including which package to use for the
+public catalog; take the details from that notice rather than from here. Two
+doors to two different things, one character apart in the name.
 
 ## What it sends, and how to send nothing
 
@@ -234,8 +238,9 @@ claude mcp add cyborg -e CYBORG_NO_INSTALL_REPORT=1 -- npx -y cyborg-mcp
 codex mcp add cyborg --env CYBORG_NO_INSTALL_REPORT=1 -- npx -y cyborg-mcp
 ```
 
-Both were run, and both wrote the variable through to the server's environment.
-In an `mcpServers` block it is an `"env": { "CYBORG_NO_INSTALL_REPORT": "1" }`
+Both were run, and both wrote the variable into the stored server configuration.
+Whether the spawned process then sees it is the client's job, not something
+checked here. In an `mcpServers` block it is an `"env": { "CYBORG_NO_INSTALL_REPORT": "1" }`
 key beside `command`. Codex writes its own TOML table:
 
 ```toml
@@ -272,7 +277,7 @@ The middle column is the most likely cause, not the only one.
 | --- | --- | --- |
 | The client lists the server but no tools | The process did not start | Run `npx -y cyborg-mcp` in a terminal. It waits silently on stdio; anything wrong prints to stderr. |
 | It starts, and the model still has no tools | The client did not surface them | Seen on Gemini CLI 0.40.1. Check the client's own MCP listing and its docs before blaming the server. |
-| `command not found: npx` | No Node | Install Node 20 or newer. Nothing else fixes it. |
+| `command not found: npx` | No Node, or Node not on this shell's PATH | Check `node -v` in the same shell. Install Node 20 or newer, or fix the PATH. |
 | The tool names are not the ones above | A release under a different product name | Read the live listing. That is why the table is dated. |
 | Install refuses and asks which agent | More than one agent on the machine | Pass `agent`. It will not guess which one you meant. |
 | Another catalog host is refused | The origin is on an allowlist | Only the catalog's own origin is accepted, rather than any host somebody typed. |
