@@ -6,66 +6,60 @@ description: Wire the public Skill catalog at cyborg.floom.dev into an agent usi
 # Get started with cyborg-mcp
 
 `cyborg-mcp` is an MCP server for the public Skill catalog at
-<https://cyborg.floom.dev>. Once it is wired in, an agent can search that
-catalog, read where a Skill came from and what it is licensed under, and write
-one into its own skills directory. There is no account, no API key and no
-sign-up: every route it reads is public.
+<https://cyborg.floom.dev>. Wired in, an agent can search that catalog, read
+where a Skill came from and what it is licensed under, and write one into its
+own skills directory.
 
-This file is written for the agent doing the wiring. Most of it is one command.
-The part that is not one command is the part below, and it is worth reading
-before you promise anybody anything.
+No account and no API key. That is not a reading of the docs: the run behind the
+last section of this file was made with no credential of any kind in the
+environment.
 
-## First decide whether this is even possible for them
+This file is written for the agent doing the wiring, and it separates what was
+run from what was read. The last section is that list. Read it before you
+promise anybody anything.
+
+## The shape of the thing, because it decides the whole conversation
 
 `cyborg-mcp` is a program that runs **on the reader's own machine**. Their agent
-launches it with `npx` and talks to it over stdin and stdout. That splits every
-possible reader in two, and the split decides the whole conversation:
+starts it with `npx` and talks to it over stdin and stdout. Two consequences,
+and both bite before any config file matters.
 
-- **The agent runs on their machine** — Claude Code, Codex CLI, Cursor,
-  Windsurf, Claude Desktop, OpenCode, Gemini CLI. It can launch the server.
-  Everything below applies.
-- **The agent runs on somebody else's server and reaches out over HTTP** — the
-  ChatGPT web app and its Connectors are the case people ask about. A remote
-  connector needs a URL to connect to. This catalog publishes no MCP endpoint
-  over HTTP; there is nothing to paste. Do not improvise one, and do not walk
-  somebody through a Connectors dialog that cannot end in success. Send them to
-  the website or to the CLI one-liner in *Without an MCP server at all* below,
-  both of which give them the same Skills.
-
-Say which of the two they are in before anything else. Getting this wrong costs
-somebody twenty minutes in a settings panel that was never going to work.
-
-## Node, and the one honest terminal moment
-
-`npx` ships with Node. The server needs **Node 20 or newer**.
+**Node has to be on that machine.** `npx` ships with Node, and the server needs
+Node 20 or newer. No version of this runs without it, and installing Node is a
+download and an installer, not a setting. If the reader has no Node, say that
+first and plainly instead of opening a config file.
 
 ```bash
 node -v
 ```
 
-If that prints `v20` or higher, the rest is a single line. If it prints nothing,
-or `command not found`, that is the moment a terminal is genuinely required and
-there is no way around it: they install Node from <https://nodejs.org> and then
-come back. Say that plainly. A GUI-only path does not exist, and pretending it
-does just moves the failure later.
+**An agent running on somebody else's servers cannot start it.** The ChatGPT web
+app is the case people ask about. Its connectors take a *remote* MCP server at
+an HTTPS URL, and this catalog publishes no such endpoint, so there is nothing
+to paste into that dialog. OpenAI does document a Secure MCP Tunnel
+(`openai/tunnel-client`) that runs a client on your own machine and bridges a
+local stdio server through to ChatGPT, so "impossible" would be wrong — but it
+wants a terminal, a platform API key with tunnel permissions, and developer mode
+switched on, and nobody ran it for this file. For somebody who found the catalog
+five minutes ago, the one-line CLI install below, or the website, is the shorter
+road and gives them exactly the same Skills.
 
 ## Wire it in
 
-Use the reader's own agent. Each of these adds a server named `cyborg`; the name
-is yours to choose and only decides what the tools are prefixed with in some
-clients.
+Everything here is a terminal command except the three GUI apps at the end, and
+those still need Node installed first. Pick the reader's own agent.
 
-### Claude Code
+### Claude Code — run to a real tool call
 
 ```bash
 claude mcp add cyborg -- npx -y cyborg-mcp
 claude mcp list
 ```
 
-The second line health-checks it and should print
+The second line health-checks it, and printed
 `cyborg: npx -y cyborg-mcp - ✔ Connected`.
 
-### Codex CLI
+### Codex CLI — run to a real tool call
 
 ```bash
 codex mcp add cyborg -- npx -y cyborg-mcp
@@ -80,33 +74,10 @@ command = "npx"
 args = ["-y", "cyborg-mcp"]
 ```
 
-`codex mcp list` shows the row as `enabled`. It does not start the server, so it
-proves the config and not the connection; the check in the next section does
-that.
+`codex mcp list` showed the row as `enabled`. It does not start the server, so
+it proves the config and not the connection.
 
-### Anything that reads an `mcpServers` block
-
-Cursor, Windsurf, Claude Desktop and Gemini CLI all take the same shape. Paste
-this into the MCP config file the app documents:
-
-```json
-{
-  "mcpServers": {
-    "cyborg": {
-      "command": "npx",
-      "args": ["-y", "cyborg-mcp"]
-    }
-  }
-}
-```
-
-Then **restart the app**. None of them re-reads that file while running, and a
-config that is correct but unread looks exactly like a config that is wrong.
-
-Gemini CLI has `gemini mcp add cyborg npx -y cyborg-mcp`, which writes that same
-block into `.gemini/settings.json` (add `--scope user` for `~/.gemini`).
-
-### OpenCode
+### OpenCode — connected, not driven
 
 Different key, same server. In `opencode.json`:
 
@@ -122,165 +93,216 @@ Different key, same server. In `opencode.json`:
 }
 ```
 
-`opencode mcp list` opens a connection to it and reports it as connected.
+`opencode mcp list` opened a connection to it and reported it connected.
 
-## Confirm it, and read the tool names off the server
+### Gemini CLI — configured, and the tools did not appear
 
-Ask the agent to list its MCP tools. **Do not trust a tool name written down
-anywhere, including here.** The four names are derived from the product name in
-the server's own source, so a rename changes them, and `tools/list` on a live
-connection is the only place that is ever current.
+```bash
+gemini mcp add cyborg npx -y cyborg-mcp                # writes ./.gemini/settings.json
+gemini mcp add --scope user cyborg npx -y cyborg-mcp   # writes ~/.gemini/settings.json
+```
 
-As published in `cyborg-mcp@0.1.3` they come back as:
+Both wrote the standard block below and exited 0. In a headless run afterwards
+the model was not offered the tools. Do not tell a Gemini user this works. Check
+`gemini mcp list`, or `/mcp` in an interactive session, and believe that.
+
+### Cursor, Windsurf, Claude Desktop — the format only
+
+These read the same block:
+
+```json
+{
+  "mcpServers": {
+    "cyborg": {
+      "command": "npx",
+      "args": ["-y", "cyborg-mcp"]
+    }
+  }
+}
+```
+
+**Nobody ran these three.** The block is the shape every client above accepted,
+which is a claim about the format and not a claim that anyone drove it. Their
+config file locations differ, and some manage MCP servers from a settings panel
+rather than a file, so take the location from the app's own documentation rather
+than a path guessed here. If the tools do not appear after saving, restart the
+app before debugging anything else.
+
+The command is deliberately unversioned. `cyborg-mcp` is the package name and a
+fixed identifier, so `npx -y cyborg-mcp` keeps resolving. What a new release can
+change is the tool names, which is the next section.
+
+## Confirm it, and get the tool names from the server
+
+Ask the agent to list its MCP tools, or use the client's own command:
+`claude mcp list`, `codex mcp list`, `opencode mcp list`, `gemini mcp list`.
+
+**Do not trust a tool name written down anywhere, including here.** The four are
+built from the product name inside the server, so a release under a different
+name publishes different names, and only a live listing is current. Clients may
+also prefix them for display — Claude Code shows them as `mcp__cyborg__<name>`,
+using whatever you called the server in the config.
+
+Listed by `cyborg-mcp@0.1.3` on 2026-09-07:
 
 | Tool | What it does |
 | --- | --- |
-| `cyborg_search_skills` | Search published Skills. Lexical ranking. |
-| `cyborg_get_skill` | One Skill: source repository, exact commit, content hash, licence, declared permissions, rights basis. |
+| `cyborg_search_skills` | Search published Skills. Ranking is lexical. |
+| `cyborg_get_skill` | One Skill: source repository, exact commit, content hash, licence, rights basis, and any permissions the Skill's own header declares. |
 | `cyborg_get_stack` | One Stack: its curator, and the ordered Skills with the release each item pins. |
 | `cyborg_install_skill` | Writes one Skill into an agent's skills directory on this machine. |
 
-If nothing comes back, the server did not start. Go to *When it does not work*.
+Substitute whatever the live listing gave you into everything below.
 
 ## Install the first Skill
 
 1. **Search.** `cyborg_search_skills` with a plain query. The order is lexical
-   relevance. It is not a quality ranking, and no install count or popularity
-   signal exists in this catalog to rank by.
-2. **Read it before you write it.** `cyborg_get_skill` returns the repository it
-   was copied from, the exact commit, the hash of the bytes, the licence, and any
-   tools the Skill's own header declares. A Skill is instructions your agent will
-   follow, so read them the way you would read any other code you install.
+   relevance. It is not a quality ranking, and there is no install count or
+   popularity signal in this catalog to rank by.
+2. **Read it before you write it.** `cyborg_get_skill` returns the repository the
+   Skill was copied from, the commit, the hash of the bytes, the licence, and the
+   basis on which the catalog credits it to whoever it names. A Skill is
+   instructions your agent will follow, so read them the way you would read any
+   other code you install.
 3. **Install.** `cyborg_install_skill` takes `slug`, an optional `agent`
    (`claude`, `codex`, `cursor`, `gemini` or `opencode`) and an optional `scope`
-   (`global`, the default, or `project`). `global` writes to that agent's home
-   skills directory; `project` writes under the current working directory. It
-   names the agent back to you in the result, and when more than one agent is on
-   the machine it **refuses rather than guessing** — pass `agent` yourself.
-4. **Reload.** Most agents read their skills directory at startup. Restart the
-   session, or the Skill is on disk and invisible.
+   (`global`, the default, or `project`). That is the tool's own declared input
+   schema, which your client will show you. `global` writes to that agent's home
+   skills directory; `project` writes under the current working directory. The
+   result names the agent it used, and the server states that it refuses rather
+   than guessing when more than one agent is on the machine.
+4. **Reload.** Agents generally read their skills directory when a session
+   starts. If the Skill does not turn up, restart the session before concluding
+   the install failed.
 
-The folder it writes is named after the Skill's **title**, not its catalog slug,
-so the two can differ: `/skills/workplan` lands in a directory called
-`work-plan-skill`. The result tells you the exact path it used. Read that rather
-than guessing where to look. (This Skill's own title and slug are deliberately
-the same string, so it lands in `get-started-with-cyborg-mcp`.)
+Read the path out of the result rather than guessing it. The folder is named
+after the Skill's **title**, not its catalog slug, and those can differ:
+installing `/skills/workplan` put three files in a directory called
+`work-plan-skill`. This Skill's title and slug are deliberately the same string,
+so it lands in `get-started-with-cyborg-mcp`.
 
-The write is deliberately boring: files are staged inside the skills directory
-and moved into place with one atomic rename, any path that is absolute or
-contains `..` is refused, a symlinked staging path is refused, and an existing
-copy of the same Skill is backed up under
-`.floom/backups/<folder>/<timestamp>/` before it is replaced. An interrupted
-install does not leave half a Skill where an agent will read it.
+The installer is the one `cyborg-skills` uses, and its safety properties are
+checked by that package's own test suite rather than asserted here: staging
+under `.floom/tmp`, one atomic rename into place, refusal of a path containing
+`..`, refusal of a symlinked skills root or a symlinked staging directory, and a
+backup of any existing copy under `.floom/backups/<folder>/<timestamp>/`. Those
+suites pass. One install of one Skill demonstrates far less than that, and what
+it does demonstrate is in the last section.
 
 ## Without an MCP server at all
 
-Every Skill page prints one command that does the same thing:
+Every Skill page prints one command. On 2026-09-07 it read:
 
 ```bash
 npx cyborg-skills@2.0.3 install https://cyborg.floom.dev/skills/<slug>
 ```
 
-Same catalog, same bytes, no config file and no restart. This is the right
-answer for anyone whose agent cannot launch a local server, and for anyone who
-would rather not add one.
+Copy it off the page rather than from here: it pins a version, and versions
+move. Add `-y` after `npx` if you would rather not be asked before it downloads.
+
+Same catalog, same bytes, no config file and no restart. This is the answer for
+anyone whose agent cannot start a local server, and for anyone who would rather
+not add one.
 
 **`cyborg mcp` is a different server.** The `cyborg-skills` CLI has an `mcp`
-subcommand, and it serves *your own signed-in workspace library* — it needs an
-account and its tools are named `floom_*`. `cyborg-mcp`, the package this file is
-about, serves the *public catalog* and needs no account. They are two doors to
-two different things and the names are one character apart.
+subcommand of its own, and it serves a signed-in workspace library rather than
+this catalog. Run it in a terminal and it prints that distinction itself,
+including which package to use for the public catalog. Two doors to two
+different things, one character apart in the name.
 
 ## What it sends, and how to send nothing
 
-Two rows, and the tool result says which is which.
+The install result carries the catalog's own words for what was recorded, and
+they distinguish two things. The catalog records that an install **link was
+fetched** — a fetch is not an install, because a fetch can be followed by a
+failed write, and a crawler can fetch and install nothing. Then, after the files
+are on disk, the server reports the install itself, and the result marks that
+row self-reported and unverified: nothing on the catalog's side can observe a
+write to your disk.
 
-- Fetching an install link is recorded server-side. A fetch is not an install:
-  a fetch can be followed by a failed write, and a crawler can fetch and install
-  nothing.
-- After the files are on disk, and only then, the server reports the install
-  itself. It sends exactly three values: the Skill slug, which agent's directory
-  was written to, and what the installer is (`cyborg-mcp/<version>`). No path,
-  no home directory, no username, no hostname, no machine identifier, no file
-  count, no timing.
+The package documents that report as exactly three values — which Skill, which
+agent's directory, and what the installer is — with no path, no home directory,
+no username, no hostname, no machine identifier, no file count and no timing,
+and the sending code enforces that field list at the moment it sends. Nobody put
+the traffic under a proxy to watch it, so pass it on as a documented claim
+rather than an observed one.
 
-Nothing on the catalog's side can observe a write to your disk, so that second
-row is stored and displayed permanently as a self-reported claim and reaches no
-public counter. To send nothing at all, set this in the server's environment:
-
-```
-CYBORG_NO_INSTALL_REPORT=1
-```
-
-It is read before any request is built, so setting it means no request is made
-rather than one that is built and thrown away. Put it where your client passes
-environment to the server:
+To send nothing at all:
 
 ```bash
 claude mcp add cyborg -e CYBORG_NO_INSTALL_REPORT=1 -- npx -y cyborg-mcp
 codex mcp add cyborg --env CYBORG_NO_INSTALL_REPORT=1 -- npx -y cyborg-mcp
 ```
 
+Both were run, and both wrote the variable through to the server's environment.
 In an `mcpServers` block it is an `"env": { "CYBORG_NO_INSTALL_REPORT": "1" }`
-key beside `command`. Codex writes it as its own TOML table:
+key beside `command`. Codex writes its own TOML table:
 
 ```toml
 [mcp_servers.cyborg.env]
 CYBORG_NO_INSTALL_REPORT = "1"
 ```
 
-The same variable works for `cyborg-skills`.
-
-That name is built from the product name at release time, exactly as the tool
-names are, so a later release can print a different one. You do not have to
-guess which: every install result carries an `opt_out` line naming the variable
-the running server actually reads, and `cyborg --help` and `cyborg install
---help` print the CLI's. Read one of those rather than this paragraph.
+That variable name is built from the product name at release time, exactly as
+the tool names are, so a later release can read a different one. You do not have
+to guess which: every install result carries an `opt_out` line naming the
+variable the running server reads. It was in the result this file was written
+from. Read it rather than this paragraph.
 
 ## What this catalog does not claim
 
-It is a private preview. Nothing in it holds a Tested, Evaluated, Signed,
-Recommended or Verified Publisher state, and no tool here reports one, because
-no evaluation has been run. There are no install counts, no popularity signal
-and no reviews — not hidden, not yet built: absent. Listing a Skill is not an
-endorsement of it, and it is not an endorsement of this catalog by whoever wrote
-the Skill. Every Skill's page names who credited it to whom, and says whether
-that credit came from the source repository's own metadata or is the publisher's
-own statement.
+It publishes no evaluation and asserts no Trust state: nothing in it is Signed,
+Tested, Evaluated, Recommended or a Verified Publisher, and no tool reports one.
+There are no install counts, no popularity signal and no reviews — not hidden,
+absent. Listing a Skill is not an endorsement of it, and it is not an
+endorsement of this catalog by whoever wrote the Skill. What each Skill's page
+does carry is who credited it to whom, and whether that credit came from the
+source repository's own metadata or is the publisher's own statement. The read
+routes being open to anyone is a fact about access, not about quality.
 
-Repeat that honestly when somebody asks whether a Skill is any good. The answer
-is that nobody here has tested it, and the provenance is there so they can judge
-for themselves.
+Say that plainly when somebody asks whether a Skill is any good. Nothing here
+has been evaluated, and the provenance is published so a reader can judge for
+themselves.
 
 ## When it does not work
 
-| What you see | What it is | What to do |
+The middle column is the most likely cause, not the only one.
+
+| What you see | Most likely | What to do |
 | --- | --- | --- |
-| Client shows the server but no tools | The process did not start | Run `npx -y cyborg-mcp` in a terminal. It should sit there silently on stdio. Errors print to stderr. |
-| `command not found: npx` | No Node | Install Node 20+ from nodejs.org. Nothing else fixes it. |
-| Tool names are not the ones above | The published server was renamed | Read `tools/list`. That is why this file tells you not to trust the table. |
+| The client lists the server but no tools | The process did not start | Run `npx -y cyborg-mcp` in a terminal. It waits silently on stdio; anything wrong prints to stderr. |
+| It starts, and the model still has no tools | The client did not surface them | Seen on Gemini CLI 0.40.1. Check the client's own MCP listing and its docs before blaming the server. |
+| `command not found: npx` | No Node | Install Node 20 or newer. Nothing else fixes it. |
+| The tool names are not the ones above | A release under a different product name | Read the live listing. That is why the table is dated. |
 | Install refuses and asks which agent | More than one agent on the machine | Pass `agent`. It will not guess which one you meant. |
-| A different catalog host is refused | `CYBORG_CATALOG_URL` is on an allowlist | Only the real catalog origin is accepted. An arbitrary host is refused rather than trusted because somebody typed it. |
-| Skill is installed but the agent ignores it | It read its skills directory at startup | Restart the agent session. |
+| Another catalog host is refused | The origin is on an allowlist | Only the catalog's own origin is accepted, rather than any host somebody typed. |
+| Installed, and the agent ignores it | It read its skills directory at startup | Restart the session, then check the path the result printed. |
 
 ## What was actually run, and what was not
 
-Written 2026-09-07, against `cyborg-mcp@0.1.3` and `cyborg-skills@2.0.3`.
+2026-09-07, against `cyborg-mcp@0.1.3` and `cyborg-skills@2.0.3`, both then the
+latest published versions.
 
-**Run end to end, tool call included:** Claude Code 2.1.261 and Codex CLI
-0.153.2. Both were configured with the command above, connected to the published
-package over stdio, and returned a real result from `cyborg_search_skills`.
+**Run to a real tool call:** Claude Code 2.1.261 and Codex CLI 0.153.2. Each was
+configured with the command shown above, connected to the published package over
+stdio, and returned a real result from the catalog's search tool.
 
-**Connection proven, no model-driven call:** OpenCode 1.18.25. `opencode mcp
-list` completed the MCP handshake against the server and reported it connected.
+**Run as a raw MCP client:** `npx -y cyborg-mcp@0.1.3` over stdio with no
+credential in the environment. `tools/list` returned the four names in the
+table; search and the Skill read both answered; one install wrote three files
+into a throwaway home directory holding a single agent. The `opt_out` line and
+the two recording sentences described above came out of that result.
 
-**Config accepted, tools did not appear:** Gemini CLI 0.40.1. `gemini mcp add`
-wrote the standard `mcpServers` block at both scopes, and in a headless run the
-tools were not offered to the model. Treat Gemini as unconfirmed and check
-`tools/list` yourself.
+**Connected only:** OpenCode 1.18.25. Its MCP listing completed a handshake with
+the server and reported it connected. No model drove a tool through it here.
 
-**Not tested at all:** Cursor, Windsurf and Claude Desktop. They are listed above
-because they read the same `mcpServers` shape, which is a claim about the config
-format and not a claim that anybody ran it.
+**Configured, tools never appeared:** Gemini CLI 0.40.1, at both scopes.
 
-**Known impossible:** the ChatGPT web app, for the reason in the first section.
+**Not run at all:** Cursor, Windsurf, Claude Desktop, and OpenAI's Secure MCP
+Tunnel. Also the Stack tool: the catalog published no Stack on the day this was
+written, so there was nothing for it to fetch.
+
+**Read, not observed:** the contents of the install report on the wire, and the
+installer's atomic-rename, traversal, symlink and backup behaviour. The second
+group is covered by that package's own test suite, which passed in full on the
+same day. Neither group was watched from outside the process.
