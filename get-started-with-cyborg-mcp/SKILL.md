@@ -122,7 +122,7 @@ Different key, same server. In `opencode.json`:
 }
 ```
 
-`opencode mcp list` connects to it and prints `cyborg  connected`.
+`opencode mcp list` opens a connection to it and reports it as connected.
 
 ## Confirm it, and read the tool names off the server
 
@@ -170,7 +170,7 @@ The write is deliberately boring: files are staged inside the skills directory
 and moved into place with one atomic rename, any path that is absolute or
 contains `..` is refused, a symlinked staging path is refused, and an existing
 copy of the same Skill is backed up under
-`.floom/backups/<slug>/<timestamp>/` before it is replaced. An interrupted
+`.floom/backups/<folder>/<timestamp>/` before it is replaced. An interrupted
 install does not leave half a Skill where an agent will read it.
 
 ## Without an MCP server at all
@@ -187,8 +187,8 @@ would rather not add one.
 
 **`cyborg mcp` is a different server.** The `cyborg-skills` CLI has an `mcp`
 subcommand, and it serves *your own signed-in workspace library* — it needs an
-account and its tools are named `floom_*`. `cyborg-mcp`, the package on this
-page, serves the *public catalog* and needs no account. They are two doors to
+account and its tools are named `floom_*`. `cyborg-mcp`, the package this file is
+about, serves the *public catalog* and needs no account. They are two doors to
 two different things and the names are one character apart.
 
 ## What it sends, and how to send nothing
@@ -206,7 +206,7 @@ Two rows, and the tool result says which is which.
 
 Nothing on the catalog's side can observe a write to your disk, so that second
 row is stored and displayed permanently as a self-reported claim and reaches no
-public counter. To send it at all, set this in the server's environment:
+public counter. To send nothing at all, set this in the server's environment:
 
 ```
 CYBORG_NO_INSTALL_REPORT=1
@@ -230,6 +230,12 @@ CYBORG_NO_INSTALL_REPORT = "1"
 ```
 
 The same variable works for `cyborg-skills`.
+
+That name is built from the product name at release time, exactly as the tool
+names are, so a later release can print a different one. You do not have to
+guess which: every install result carries an `opt_out` line naming the variable
+the running server actually reads, and `cyborg --help` and `cyborg install
+--help` print the CLI's. Read one of those rather than this paragraph.
 
 ## What this catalog does not claim
 
