@@ -74,6 +74,7 @@ def find(topic, n=12):
                 au = [a["author"]["display_name"].split()[-1]
                       for a in (w.get("authorships") or []) if a.get("author")]
                 if not au: continue
+                if verify(doi)["status"] != "resolved": continue
                 seen.add(doi)
                 out.append({"doi": doi, "title": title, "authors": au[:6],
                             "year": w.get("publication_year"),
@@ -84,8 +85,11 @@ def find(topic, n=12):
     return out
 
 def verify(doi):
-    """resolved | absent | unknown. 'unknown' is never collapsed into 'absent'."""
+    """resolved | absent | unknown | invalid. Unknown never becomes absent."""
     d = doi.strip().lower().replace("https://doi.org/", "")
+    if not d:
+        return {"doi": d, "status": "invalid", "agency": None,
+                "error": "DOI is empty"}
     for name, url in (("crossref", f"https://api.crossref.org/works/{urllib.parse.quote(d)}"),
                       ("datacite", f"https://api.datacite.org/dois/{urllib.parse.quote(d)}")):
         try:
@@ -111,6 +115,6 @@ if __name__ == "__main__":
     elif cmd == "verify":
         res = [verify(d) for d in sys.argv[2:]]
         print(json.dumps(res, indent=2, ensure_ascii=False))
-        sys.exit(1 if any(r["status"] == "absent" for r in res) else 0)
+        sys.exit(1 if any(r["status"] != "resolved" for r in res) else 0)
     else:
         print(__doc__); sys.exit(2)

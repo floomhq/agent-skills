@@ -15,7 +15,7 @@
   },
   "hash_scope": "Each hash below is taken over the file list beside it, as path:sha256 in path order. copy_files does not list DERIVATION.json, because a record cannot contain its own hash. The published bundle is copy_files PLUS this record, and the hash of that is on the Release, not in here.",
   "source_files_sha256": "26577bd7af72d73f8489e3e78cbdb885810fd1909b528886e528baba31517320",
-  "copy_files_sha256": "fd2f6fe21a639cea15b5275094c4dbaef67112fc2f98dc6b877b57d54c821c79",
+  "copy_files_sha256": "f0f680582ab72677c0b4badbd69b64529c31250b7b431239cc985bb8449e0aa5",
   "source_files": [
     {
       "path": "SKILL.md",
@@ -36,8 +36,8 @@
     },
     {
       "path": "SKILL.md",
-      "sha256": "10de355068a596498cb98d1f2cba4c8a7d4f6c965521e344ae503e2a4e58f24c",
-      "size_bytes": 4996
+      "sha256": "10804025b3578f061015807824f6fd1500253eeeff03ec22807ea27247c63e94",
+      "size_bytes": 5148
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -46,17 +46,22 @@
     },
     {
       "path": "scripts/sources.py",
-      "sha256": "1a894a87afbba8c503b7e416df61bfbbbd20543870a6fcb563ce32ca819b1e1d",
-      "size_bytes": 5954
+      "sha256": "876cd462e0d0471b2fbd8e8fe0819b6eb9eebfa5408ffc9ab673615261d36526",
+      "size_bytes": 6135
+    },
+    {
+      "path": "tests/test_sources.py",
+      "sha256": "5e208a050b3d66b41a131dc0203fe30d6b21bb6bb581962c0a533da340c4e86c",
+      "size_bytes": 2546
     }
   ],
   "dropped_files": [],
   "edits": [
     {
       "file": "SKILL.md",
-      "why": "replaced the unverified claim that this standalone workflow is the same engine running openpaper.dev with a narrower, source-backed derivation statement",
+      "why": "replaced the unverified claim that this standalone workflow is the same engine running openpaper.dev with a narrower derivation statement, and documented invalid DOI handling and command exit behavior",
       "removed_chars": 51,
-      "added_chars": 56
+      "added_chars": 208
     },
     {
       "file": "LICENSE",
@@ -72,9 +77,15 @@
     },
     {
       "file": "scripts/sources.py",
-      "why": "corrected the module documentation to name only the three APIs the script actually calls and removed the unimplemented registration-agency claim",
-      "removed_chars": 44,
-      "added_chars": 17
+      "why": "corrected the API documentation, rejected empty DOI input before network access, made unresolved verification exit nonzero, and verified OpenAlex fallback DOIs before returning them",
+      "removed_chars": 83,
+      "added_chars": 237
+    },
+    {
+      "file": "tests/test_sources.py",
+      "why": "added deterministic regressions for whitespace DOI rejection, nonzero CLI status, and omission of unresolved OpenAlex DOI results",
+      "removed_chars": 0,
+      "added_chars": 2546
     }
   ]
 }

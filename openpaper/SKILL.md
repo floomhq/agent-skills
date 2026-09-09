@@ -64,13 +64,16 @@ gathered at the end of the paragraph.
 python3 scripts/sources.py verify <doi> <doi> ...
 ```
 
-Three states, and `unknown` is never quietly turned into `absent`:
+Three network states, and `unknown` is never quietly turned into `absent`:
 
 - **resolved** — Crossref or DataCite returned the record. Cite it.
 - **absent** — both returned 404. **Drop it.** Do not repair it, do not guess a
   replacement DOI, go back to phase 2 for a real source.
 - **unknown** — a network or rate-limit failure. Retry once, then say so in the
   paper's limitations rather than pretending it resolved.
+
+An empty DOI is `invalid`. The verification command exits nonzero for `absent`,
+`unknown`, or `invalid`; only a fully resolved set exits zero.
 
 arXiv preprints resolve at DataCite and 404 at Crossref, which is why the check
 runs both. A Crossref-only check silently deletes every preprint.
